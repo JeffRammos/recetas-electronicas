@@ -6,7 +6,15 @@ import { put } from "@vercel/blob";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { generarRecetaPdf } from "@/lib/receta-pdf";
+import { intentarPublicar } from "@/lib/proveedor/publicar";
+import { firmarPayload } from "@/lib/proveedor/firma";
 import { PacienteSchema, RecetaItemSchema, RecetaSchema } from "@/lib/validaciones";
+
+function urlBase() {
+  if (process.env.NEXT_PUBLIC_APP_URL) return process.env.NEXT_PUBLIC_APP_URL;
+  if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL}`;
+  return "http://localhost:3000";
+}
 
 export type RecetaFormState =
   | {
@@ -189,6 +197,7 @@ export async function emitirReceta(
       indicaciones: indicaciones || undefined,
       fechaEmision,
       fechaVencimiento,
+      estado: "PENDIENTE_SYNC",
       items: { create: itemsResueltos },
     },
     include: { items: true },
@@ -234,6 +243,11 @@ export async function emitirReceta(
 
   await prisma.receta.update({ where: { id: receta.id }, data: { pdfPath: blob.pathname } });
 
+  // Se intenta publicar en el proveedor recién al final: el PDF y el guardado
+  // local no dependen de esto. Si el proveedor está caído, la receta queda en
+  // PENDIENTE_SYNC (ver Regla 6) en vez de bloquear la emisión.
+  await intentarPublicar(receta.id);
+
   revalidatePath("/recetas");
   redirect(`/recetas/${receta.id}`);
 }
@@ -252,13 +266,72 @@ export async function anularReceta(recetaId: string, formData: FormData) {
     where: { id: recetaId, profesionalId: profesional.id },
   });
   if (!receta) throw new Error("Receta no encontrada.");
-  if (receta.estado !== "EMITIDA") throw new Error("Esta receta ya no se puede anular.");
+  if (receta.estado !== "EMITIDA" && receta.estado !== "PENDIENTE_SYNC") {
+    throw new Error("Esta receta ya no se puede anular.");
+  }
 
   const motivo = formData.get("motivo");
 
   await prisma.receta.update({
     where: { id: recetaId },
     data: { estado: "ANULADA", motivoAnulacion: typeof motivo === "string" && motivo ? motivo : null },
+  });
+
+  revalidatePath("/recetas");
+  revalidatePath(`/recetas/${recetaId}`);
+}
+
+export async function reintentarSincronizacion(recetaId: string) {
+  const sesion = await auth();
+  if (!sesion || sesion.user.rol !== "PROFESIONAL") {
+    throw new Error("No tenés permiso para hacer esto.");
+  }
+
+  const profesional = await prisma.profesional.findUniqueOrThrow({
+    where: { usuarioId: sesion.user.id },
+  });
+
+  const receta = await prisma.receta.findFirst({
+    where: { id: recetaId, profesionalId: profesional.id, estado: "PENDIENTE_SYNC" },
+  });
+  if (!receta) throw new Error("Receta no encontrada o ya sincronizada.");
+
+  await intentarPublicar(recetaId);
+
+  revalidatePath("/recetas");
+  revalidatePath(`/recetas/${recetaId}`);
+}
+
+export async function simularDispensacion(recetaId: string) {
+  const sesion = await auth();
+  if (!sesion || sesion.user.rol !== "PROFESIONAL") {
+    throw new Error("No tenés permiso para hacer esto.");
+  }
+
+  const profesional = await prisma.profesional.findUniqueOrThrow({
+    where: { usuarioId: sesion.user.id },
+  });
+
+  const receta = await prisma.receta.findFirst({
+    where: { id: recetaId, profesionalId: profesional.id },
+  });
+  if (!receta || !receta.proveedorExternalId) {
+    throw new Error("La receta todavía no fue publicada en el proveedor.");
+  }
+
+  const payload = JSON.stringify({
+    eventId: crypto.randomUUID(),
+    externalId: receta.proveedorExternalId,
+    evento: "DISPENSADA",
+  });
+
+  await fetch(`${urlBase()}/api/recetas/webhook`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-proveedor-signature": firmarPayload(payload),
+    },
+    body: payload,
   });
 
   revalidatePath("/recetas");
