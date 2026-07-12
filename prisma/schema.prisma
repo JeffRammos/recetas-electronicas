@@ -86,6 +86,8 @@ enum TipoReceta {
 
 enum EstadoReceta {
   EMITIDA
+  PENDIENTE_SYNC
+  DISPENSADA
   ANULADA
 }
 
@@ -119,11 +121,18 @@ model Receta {
   indicaciones     String?
   fechaEmision     DateTime     @default(now())
   fechaVencimiento DateTime
-  estado           EstadoReceta @default(EMITIDA)
+  estado           EstadoReceta @default(PENDIENTE_SYNC)
   motivoAnulacion  String?
   pdfPath          String?
+  proveedorExternalId String?  @unique
   createdAt        DateTime     @default(now())
   items            RecetaItem[]
+}
+
+model WebhookEvento {
+  id          String   @id @default(cuid())
+  eventId     String   @unique
+  procesadoEn DateTime @default(now())
 }
 
 model RecetaItem {

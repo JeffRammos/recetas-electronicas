@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Receta" ALTER COLUMN "estado" SET DEFAULT 'PENDIENTE_SYNC';
