@@ -40,30 +40,104 @@ model Profesional {
   estado       EstadoProfesional @default(PENDIENTE)
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
+  pacientes    Paciente[]
+  recetas      Receta[]
 }
 
 model Medicamento {
-  id              String   @id @default(cuid())
-  nombre          String   @unique
-  vencimientoDias Int      @default(30)
-  activo          Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id              String       @id @default(cuid())
+  nombre          String       @unique
+  vencimientoDias Int          @default(30)
+  activo          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  recetaItems     RecetaItem[]
 }
 
 model Estudio {
-  id              String   @id @default(cuid())
-  nombre          String   @unique
-  vencimientoDias Int      @default(60)
-  activo          Boolean  @default(true)
-  createdAt       DateTime @default(now())
+  id              String       @id @default(cuid())
+  nombre          String       @unique
+  vencimientoDias Int          @default(60)
+  activo          Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  recetaItems     RecetaItem[]
 }
 
 model ObraSocial {
-  id                          String   @id @default(cuid())
-  nombre                      String   @unique
+  id                          String     @id @default(cuid())
+  nombre                      String     @unique
   // null = usa el vencimientoDias del medicamento/estudio; si tiene valor, lo pisa.
   vencimientoMedicamentosDias Int?
   vencimientoEstudiosDias     Int?
-  activo                      Boolean  @default(true)
-  createdAt                   DateTime @default(now())
+  activo                      Boolean    @default(true)
+  createdAt                   DateTime   @default(now())
+  pacientes                   Paciente[]
+}
+
+enum Sexo {
+  MASCULINO
+  FEMENINO
+  OTRO
+}
+
+enum TipoReceta {
+  MEDICAMENTO
+  ESTUDIO
+}
+
+enum EstadoReceta {
+  EMITIDA
+  ANULADA
+}
+
+model Paciente {
+  id                   String      @id @default(cuid())
+  profesional          Profesional @relation(fields: [profesionalId], references: [id])
+  profesionalId        String
+  dni                  String
+  nombre               String
+  apellido             String
+  fechaNacimiento      DateTime
+  sexo                 Sexo
+  obraSocial           ObraSocial? @relation(fields: [obraSocialId], references: [id])
+  obraSocialId         String?
+  obraSocialCredencial String?
+  createdAt            DateTime    @default(now())
+  recetas              Receta[]
+
+  @@unique([profesionalId, dni])
+}
+
+model Receta {
+  id               String       @id @default(cuid())
+  numero           Int          @unique @default(autoincrement())
+  profesional      Profesional  @relation(fields: [profesionalId], references: [id])
+  profesionalId    String
+  paciente         Paciente     @relation(fields: [pacienteId], references: [id])
+  pacienteId       String
+  tipo             TipoReceta
+  diagnostico      String?
+  indicaciones     String?
+  fechaEmision     DateTime     @default(now())
+  fechaVencimiento DateTime
+  estado           EstadoReceta @default(EMITIDA)
+  motivoAnulacion  String?
+  pdfPath          String?
+  createdAt        DateTime     @default(now())
+  items            RecetaItem[]
+}
+
+model RecetaItem {
+  id                      String       @id @default(cuid())
+  receta                  Receta       @relation(fields: [recetaId], references: [id])
+  recetaId                String
+  medicamento             Medicamento? @relation(fields: [medicamentoId], references: [id])
+  medicamentoId           String?
+  estudio                 Estudio?     @relation(fields: [estudioId], references: [id])
+  estudioId               String?
+  nombreSnapshot          String
+  dosis                   String?
+  frecuencia              String?
+  cantidad                String?
+  viaAdministracion       String?
+  vencimientoDiasAplicado Int
 }

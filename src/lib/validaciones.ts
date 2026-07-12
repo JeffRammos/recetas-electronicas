@@ -30,3 +30,28 @@ export const ObraSocialSchema = z.object({
   vencimientoMedicamentosDias: diasOpcionales,
   vencimientoEstudiosDias: diasOpcionales,
 });
+
+export const PacienteSchema = z.object({
+  dni: z.string().trim().min(6, "DNI inválido.").max(12, "DNI inválido."),
+  nombre: z.string().trim().min(2, "Ingresá el nombre."),
+  apellido: z.string().trim().min(2, "Ingresá el apellido."),
+  fechaNacimiento: z.coerce.date({ error: "Ingresá una fecha de nacimiento válida." }),
+  sexo: z.enum(["MASCULINO", "FEMENINO", "OTRO"]),
+  obraSocialId: z.string().trim().optional().or(z.literal("")),
+  obraSocialCredencial: z.string().trim().optional().or(z.literal("")),
+});
+
+export const RecetaItemSchema = z.object({
+  catalogoId: z.string().min(1, "Elegí un ítem del catálogo."),
+  dosis: z.string().trim().optional().or(z.literal("")),
+  frecuencia: z.string().trim().optional().or(z.literal("")),
+  cantidad: z.string().trim().optional().or(z.literal("")),
+  viaAdministracion: z.string().trim().optional().or(z.literal("")),
+});
+
+export const RecetaSchema = z.object({
+  tipo: z.enum(["MEDICAMENTO", "ESTUDIO"]),
+  pacienteId: z.string().trim().optional().or(z.literal("")),
+  diagnostico: z.string().trim().optional().or(z.literal("")),
+  indicaciones: z.string().trim().optional().or(z.literal("")),
+});
