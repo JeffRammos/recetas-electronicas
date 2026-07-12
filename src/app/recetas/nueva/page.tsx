@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { cerrarSesion } from "@/app/actions/auth";
+import { AppHeader } from "@/components/app-header";
+import { Button } from "@/components/ui/button";
 import { RecetaForm } from "../_components/receta-form";
+
+const NAV = [
+  { href: "/recetas", label: "Mis recetas" },
+  { href: "/perfil", label: "Mi perfil" },
+];
 
 export default async function NuevaRecetaPage() {
   const sesion = await auth();
@@ -15,16 +23,21 @@ export default async function NuevaRecetaPage() {
 
   if (!puedeEmitir) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-zinc-50 px-4 text-center font-sans dark:bg-black">
-        <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">Todavía no podés emitir recetas</h1>
-        <p className="max-w-md text-zinc-600 dark:text-zinc-400">
-          {profesional.estado !== "APROBADO"
-            ? "Tu cuenta todavía no fue aprobada por el admin."
-            : "Completá tu matrícula y subí tu firma en tu perfil antes de emitir."}
-        </p>
-        <Link href="/perfil" className="underline text-zinc-700 dark:text-zinc-300">
-          Ir a mi perfil
-        </Link>
+      <div className="flex min-h-screen flex-1 flex-col">
+        <AppHeader links={NAV} cerrarSesionAction={cerrarSesion} />
+        <main className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center gap-4 px-4 text-center">
+          <h1 className="font-heading text-2xl text-foreground">
+            Todavía no podés emitir recetas
+          </h1>
+          <p className="text-muted-foreground">
+            {profesional.estado !== "APROBADO"
+              ? "Tu cuenta todavía no fue aprobada por el admin."
+              : "Completá tu matrícula y subí tu firma en tu perfil antes de emitir."}
+          </p>
+          <Button variant="outline" nativeButton={false} render={<Link href="/perfil" />}>
+            Ir a mi perfil
+          </Button>
+        </main>
       </div>
     );
   }
@@ -41,19 +54,18 @@ export default async function NuevaRecetaPage() {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col items-center gap-6 bg-zinc-50 px-4 py-12 font-sans dark:bg-black">
-      <div className="flex w-full max-w-2xl items-center justify-between">
-        <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">Nueva receta</h1>
-        <Link href="/recetas" className="text-sm underline text-zinc-600 dark:text-zinc-400">
-          Volver
-        </Link>
-      </div>
-      <RecetaForm
-        pacientes={pacientes}
-        medicamentos={medicamentos}
-        estudios={estudios}
-        obrasSociales={obrasSociales}
-      />
+    <div className="flex min-h-screen flex-1 flex-col">
+      <AppHeader links={NAV} cerrarSesionAction={cerrarSesion} />
+
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
+        <h1 className="font-heading text-2xl text-foreground">Nueva receta</h1>
+        <RecetaForm
+          pacientes={pacientes}
+          medicamentos={medicamentos}
+          estudios={estudios}
+          obrasSociales={obrasSociales}
+        />
+      </main>
     </div>
   );
 }

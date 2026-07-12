@@ -2,6 +2,9 @@
 
 import { useActionState } from "react";
 import { actualizarPerfil } from "@/app/actions/perfil";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function PerfilForm({
   especialidad,
@@ -13,61 +16,33 @@ export function PerfilForm({
   const [state, action, pending] = useActionState(actualizarPerfil, undefined);
 
   return (
-    <form action={action} className="flex w-full max-w-sm flex-col gap-4">
-      <div className="flex flex-col gap-1">
-        <label htmlFor="especialidad" className="text-sm text-zinc-700 dark:text-zinc-300">
-          Especialidad
-        </label>
-        <input
-          id="especialidad"
-          name="especialidad"
-          defaultValue={especialidad ?? ""}
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-        />
+    <form action={action} className="flex w-full flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="especialidad">Especialidad</Label>
+        <Input id="especialidad" name="especialidad" defaultValue={especialidad ?? ""} />
         {state?.errors?.especialidad && (
-          <p className="text-sm text-red-600">{state.errors.especialidad[0]}</p>
+          <p className="text-sm text-destructive">{state.errors.especialidad[0]}</p>
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="matricula" className="text-sm text-zinc-700 dark:text-zinc-300">
-          Matrícula
-        </label>
-        <input
-          id="matricula"
-          name="matricula"
-          defaultValue={matricula ?? ""}
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-        />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="matricula">Matrícula</Label>
+        <Input id="matricula" name="matricula" defaultValue={matricula ?? ""} />
         {state?.errors?.matricula && (
-          <p className="text-sm text-red-600">{state.errors.matricula[0]}</p>
+          <p className="text-sm text-destructive">{state.errors.matricula[0]}</p>
         )}
       </div>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="firma" className="text-sm text-zinc-700 dark:text-zinc-300">
-          Firma escaneada (PNG, JPG o WEBP)
-        </label>
-        <input
-          id="firma"
-          name="firma"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          className="text-sm text-zinc-700 dark:text-zinc-300"
-        />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="firma">Firma escaneada (PNG, JPG o WEBP)</Label>
+        <Input id="firma" name="firma" type="file" accept="image/png,image/jpeg,image/webp" />
       </div>
 
-      {state?.message && (
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">{state.message}</p>
-      )}
+      {state?.message && <p className="text-sm text-muted-foreground">{state.message}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-black px-4 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
-      >
+      <Button type="submit" disabled={pending} className="w-fit">
         {pending ? "Guardando..." : "Guardar perfil"}
-      </button>
+      </Button>
     </form>
   );
 }

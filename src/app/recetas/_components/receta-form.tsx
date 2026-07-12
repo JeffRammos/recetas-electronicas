@@ -1,15 +1,25 @@
 "use client";
 
 import { useActionState, useState } from "react";
+import { Plus } from "lucide-react";
 import { emitirReceta } from "@/app/actions/recetas";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 type Paciente = { id: string; nombre: string; apellido: string; dni: string };
 type CatalogoItem = { id: string; nombre: string };
 type ObraSocial = { id: string; nombre: string };
-
-const inputClase =
-  "rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50";
-const labelClase = "text-sm text-zinc-700 dark:text-zinc-300";
 
 export function RecetaForm({
   pacientes,
@@ -24,7 +34,6 @@ export function RecetaForm({
 }) {
   const [state, formAction, pending] = useActionState(emitirReceta, undefined);
   const [tipo, setTipo] = useState<"MEDICAMENTO" | "ESTUDIO">("MEDICAMENTO");
-  const [pacienteId, setPacienteId] = useState<string>(pacientes[0]?.id ?? "");
   const [pacienteNuevo, setPacienteNuevo] = useState(pacientes.length === 0);
   const [cantidadItems, setCantidadItems] = useState(1);
 
@@ -32,185 +41,233 @@ export function RecetaForm({
   const maxItems = tipo === "MEDICAMENTO" ? 3 : 1;
 
   return (
-    <form action={formAction} className="flex w-full max-w-2xl flex-col gap-6">
-      <div className="flex flex-col gap-1">
-        <label className={labelClase}>Tipo de prescripción</label>
-        <select
+    <form action={formAction} className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="tipo">Tipo de prescripción</Label>
+        <Select
           name="tipo"
-          value={tipo}
-          onChange={(e) => {
-            const nuevoTipo = e.target.value as "MEDICAMENTO" | "ESTUDIO";
-            setTipo(nuevoTipo);
+          items={{ MEDICAMENTO: "Medicamento", ESTUDIO: "Estudio" }}
+          defaultValue="MEDICAMENTO"
+          onValueChange={(value) => {
+            setTipo(value as "MEDICAMENTO" | "ESTUDIO");
             setCantidadItems(1);
           }}
-          className={inputClase}
         >
-          <option value="MEDICAMENTO">Medicamento</option>
-          <option value="ESTUDIO">Estudio</option>
-        </select>
+          <SelectTrigger id="tipo" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="MEDICAMENTO">Medicamento</SelectItem>
+            <SelectItem value="ESTUDIO">Estudio</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      <fieldset className="flex flex-col gap-3 rounded border border-zinc-300 p-4 dark:border-zinc-700">
-        <legend className="px-1 text-sm font-medium text-black dark:text-zinc-50">Paciente</legend>
+      <Card>
+        <CardHeader className="flex-row items-center justify-between gap-4 space-y-0">
+          <CardTitle>Paciente</CardTitle>
+          {pacientes.length > 0 && (
+            <div className="flex gap-1 rounded-lg bg-muted p-0.5 text-sm">
+              <button
+                type="button"
+                onClick={() => setPacienteNuevo(false)}
+                className={cn(
+                  "rounded-md px-2.5 py-1 transition-colors",
+                  !pacienteNuevo ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                Existente
+              </button>
+              <button
+                type="button"
+                onClick={() => setPacienteNuevo(true)}
+                className={cn(
+                  "rounded-md px-2.5 py-1 transition-colors",
+                  pacienteNuevo ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                )}
+              >
+                Nuevo
+              </button>
+            </div>
+          )}
+        </CardHeader>
 
-        {pacientes.length > 0 && (
-          <div className="flex gap-4 text-sm">
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                checked={!pacienteNuevo}
-                onChange={() => setPacienteNuevo(false)}
-              />
-              Paciente existente
-            </label>
-            <label className="flex items-center gap-1">
-              <input type="radio" checked={pacienteNuevo} onChange={() => setPacienteNuevo(true)} />
-              Paciente nuevo
-            </label>
-          </div>
-        )}
-
-        {!pacienteNuevo && pacientes.length > 0 ? (
-          <select
-            name="pacienteId"
-            value={pacienteId}
-            onChange={(e) => setPacienteId(e.target.value)}
-            className={inputClase}
-          >
-            {pacientes.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.apellido}, {p.nombre} — DNI {p.dni}
-              </option>
-            ))}
-          </select>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            <input type="hidden" name="pacienteId" value="" />
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>DNI</label>
-              <input name="dni" required className={inputClase} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>Fecha de nacimiento</label>
-              <input name="fechaNacimiento" type="date" required className={inputClase} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>Nombre</label>
-              <input name="nombrePaciente" required className={inputClase} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>Apellido</label>
-              <input name="apellidoPaciente" required className={inputClase} />
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>Sexo</label>
-              <select name="sexo" required className={inputClase} defaultValue="">
-                <option value="" disabled>
-                  Elegir...
-                </option>
-                <option value="FEMENINO">Femenino</option>
-                <option value="MASCULINO">Masculino</option>
-                <option value="OTRO">Otro</option>
-              </select>
-            </div>
-            <div className="flex flex-col gap-1">
-              <label className={labelClase}>Obra social</label>
-              <select name="obraSocialId" className={inputClase} defaultValue="">
-                <option value="">Particular (sin obra social)</option>
-                {obrasSociales.map((os) => (
-                  <option key={os.id} value={os.id}>
-                    {os.nombre}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="col-span-2 flex flex-col gap-1">
-              <label className={labelClase}>N° de credencial</label>
-              <input name="obraSocialCredencial" className={inputClase} />
-            </div>
-          </div>
-        )}
-        {state?.errors?.dni && <p className="text-sm text-red-600">{state.errors.dni[0]}</p>}
-      </fieldset>
-
-      <fieldset className="flex flex-col gap-3 rounded border border-zinc-300 p-4 dark:border-zinc-700">
-        <legend className="px-1 text-sm font-medium text-black dark:text-zinc-50">
-          {tipo === "MEDICAMENTO" ? "Medicamentos" : "Estudio"}
-        </legend>
-
-        {Array.from({ length: cantidadItems }).map((_, i) => {
-          const n = i + 1;
-          return (
-            <div key={n} className="grid grid-cols-2 gap-3 border-b border-zinc-200 pb-3 last:border-0 dark:border-zinc-800">
-              <div className="col-span-2 flex flex-col gap-1">
-                <label className={labelClase}>
-                  {tipo === "MEDICAMENTO" ? `Medicamento ${n}` : "Estudio"}
-                </label>
-                <select name={`item${n}_catalogoId`} required className={inputClase} defaultValue="">
-                  <option value="" disabled>
-                    Elegir...
-                  </option>
-                  {catalogo.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.nombre}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {tipo === "MEDICAMENTO" && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <label className={labelClase}>Dosis</label>
-                    <input name={`item${n}_dosis`} className={inputClase} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className={labelClase}>Frecuencia</label>
-                    <input name={`item${n}_frecuencia`} className={inputClase} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className={labelClase}>Cantidad</label>
-                    <input name={`item${n}_cantidad`} className={inputClase} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <label className={labelClase}>Vía de administración</label>
-                    <input name={`item${n}_viaAdministracion`} className={inputClase} />
-                  </div>
-                </>
+        <CardContent>
+          {!pacienteNuevo && pacientes.length > 0 ? (
+            <Select
+              name="pacienteId"
+              items={Object.fromEntries(
+                pacientes.map((p) => [p.id, `${p.apellido}, ${p.nombre} — DNI ${p.dni}`])
               )}
+              defaultValue={pacientes[0].id}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {pacientes.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.apellido}, {p.nombre} — DNI {p.dni}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <input type="hidden" name="pacienteId" value="" />
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="dni">DNI</Label>
+                <Input id="dni" name="dni" required />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="fechaNacimiento">Fecha de nacimiento</Label>
+                <Input id="fechaNacimiento" name="fechaNacimiento" type="date" required />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="nombrePaciente">Nombre</Label>
+                <Input id="nombrePaciente" name="nombrePaciente" required />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="apellidoPaciente">Apellido</Label>
+                <Input id="apellidoPaciente" name="apellidoPaciente" required />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="sexo">Sexo</Label>
+                <Select
+                  name="sexo"
+                  required
+                  items={{ FEMENINO: "Femenino", MASCULINO: "Masculino", OTRO: "Otro" }}
+                >
+                  <SelectTrigger id="sexo" className="w-full">
+                    <SelectValue placeholder="Elegir..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FEMENINO">Femenino</SelectItem>
+                    <SelectItem value="MASCULINO">Masculino</SelectItem>
+                    <SelectItem value="OTRO">Otro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="obraSocialId">Obra social</Label>
+                <Select
+                  name="obraSocialId"
+                  defaultValue="particular"
+                  items={{
+                    particular: "Particular (sin obra social)",
+                    ...Object.fromEntries(obrasSociales.map((os) => [os.id, os.nombre])),
+                  }}
+                >
+                  <SelectTrigger id="obraSocialId" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="particular">Particular (sin obra social)</SelectItem>
+                    {obrasSociales.map((os) => (
+                      <SelectItem key={os.id} value={os.id}>
+                        {os.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2 flex flex-col gap-1.5">
+                <Label htmlFor="obraSocialCredencial">N° de credencial</Label>
+                <Input id="obraSocialCredencial" name="obraSocialCredencial" />
+              </div>
             </div>
-          );
-        })}
+          )}
+          {state?.errors?.dni && <p className="mt-2 text-sm text-destructive">{state.errors.dni[0]}</p>}
+        </CardContent>
+      </Card>
 
-        {tipo === "MEDICAMENTO" && (
-          <button
-            type="button"
-            disabled={cantidadItems >= maxItems}
-            onClick={() => setCantidadItems((c) => Math.min(c + 1, maxItems))}
-            className="w-fit text-sm underline text-zinc-700 disabled:text-zinc-400 disabled:no-underline dark:text-zinc-300"
-          >
-            {cantidadItems >= maxItems ? "Máximo 3 medicamentos por receta" : "+ Agregar otro medicamento"}
-          </button>
-        )}
-      </fieldset>
+      <Card>
+        <CardHeader>
+          <CardTitle>{tipo === "MEDICAMENTO" ? "Medicamentos" : "Estudio"}</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          {Array.from({ length: cantidadItems }).map((_, i) => {
+            const n = i + 1;
+            return (
+              <div
+                key={n}
+                className="grid grid-cols-2 gap-3 border-b border-border pb-4 last:border-0 last:pb-0"
+              >
+                <div className="col-span-2 flex flex-col gap-1.5">
+                  <Label htmlFor={`item${n}_catalogoId`}>
+                    {tipo === "MEDICAMENTO" ? `Medicamento ${n}` : "Estudio"}
+                  </Label>
+                  <Select
+                    name={`item${n}_catalogoId`}
+                    required
+                    items={Object.fromEntries(catalogo.map((c) => [c.id, c.nombre]))}
+                  >
+                    <SelectTrigger id={`item${n}_catalogoId`} className="w-full">
+                      <SelectValue placeholder="Elegir..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {catalogo.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.nombre}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {tipo === "MEDICAMENTO" && (
+                  <>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor={`item${n}_dosis`}>Dosis</Label>
+                      <Input id={`item${n}_dosis`} name={`item${n}_dosis`} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor={`item${n}_frecuencia`}>Frecuencia</Label>
+                      <Input id={`item${n}_frecuencia`} name={`item${n}_frecuencia`} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor={`item${n}_cantidad`}>Cantidad</Label>
+                      <Input id={`item${n}_cantidad`} name={`item${n}_cantidad`} />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <Label htmlFor={`item${n}_viaAdministracion`}>Vía de administración</Label>
+                      <Input id={`item${n}_viaAdministracion`} name={`item${n}_viaAdministracion`} />
+                    </div>
+                  </>
+                )}
+              </div>
+            );
+          })}
 
-      <div className="flex flex-col gap-1">
-        <label className={labelClase}>Diagnóstico</label>
-        <input name="diagnostico" className={inputClase} />
+          {tipo === "MEDICAMENTO" && (
+            <button
+              type="button"
+              disabled={cantidadItems >= maxItems}
+              onClick={() => setCantidadItems((c) => Math.min(c + 1, maxItems))}
+              className="flex w-fit items-center gap-1 text-sm text-primary hover:underline disabled:text-muted-foreground disabled:no-underline"
+            >
+              <Plus className="size-3.5" />
+              {cantidadItems >= maxItems
+                ? "Máximo 3 medicamentos por receta"
+                : "Agregar otro medicamento"}
+            </button>
+          )}
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="diagnostico">Diagnóstico</Label>
+        <Input id="diagnostico" name="diagnostico" />
       </div>
-      <div className="flex flex-col gap-1">
-        <label className={labelClase}>Indicaciones</label>
-        <textarea name="indicaciones" rows={3} className={inputClase} />
+      <div className="flex flex-col gap-1.5">
+        <Label htmlFor="indicaciones">Indicaciones</Label>
+        <Textarea id="indicaciones" name="indicaciones" rows={3} />
       </div>
 
-      {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+      {state?.message && <p className="text-sm text-destructive">{state.message}</p>}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-fit rounded bg-black px-4 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
-      >
+      <Button type="submit" disabled={pending} size="lg" className="w-fit">
         {pending ? "Emitiendo..." : "Emitir receta"}
-      </button>
+      </Button>
     </form>
   );
 }

@@ -1,9 +1,16 @@
 import Image from "next/image";
-import Link from "next/link";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { cerrarSesion } from "@/app/actions/auth";
+import { AppHeader } from "@/components/app-header";
+import { EstadoBadge } from "@/components/estado-badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { PerfilForm } from "./perfil-form";
+
+const NAV = [
+  { href: "/recetas", label: "Mis recetas" },
+  { href: "/perfil", label: "Mi perfil" },
+];
 
 export default async function PerfilPage() {
   const sesion = await auth();
@@ -13,44 +20,47 @@ export default async function PerfilPage() {
     where: { usuarioId: sesion.user.id },
   });
 
-  const badge =
-    profesional.estado === "APROBADO"
-      ? { texto: "Aprobado", clase: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200" }
-      : { texto: "Pendiente de aprobación", clase: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200" };
-
   return (
-    <div className="flex min-h-screen flex-col items-center gap-6 bg-zinc-50 px-4 py-12 font-sans dark:bg-black">
-      <div className="flex w-full max-w-sm items-center justify-between">
-        <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">Mi perfil</h1>
-        <div className="flex items-center gap-4">
-          <Link href="/recetas" className="text-sm underline text-zinc-600 dark:text-zinc-400">
-            Mis recetas
-          </Link>
-          <form action={cerrarSesion}>
-            <button type="submit" className="text-sm underline text-zinc-600 dark:text-zinc-400">
-              Cerrar sesión
-            </button>
-          </form>
+    <div className="flex min-h-screen flex-1 flex-col">
+      <AppHeader links={NAV} cerrarSesionAction={cerrarSesion} />
+
+      <main className="mx-auto flex w-full max-w-lg flex-1 flex-col gap-6 px-4 py-10">
+        <div className="flex items-center justify-between">
+          <h1 className="font-heading text-2xl text-foreground">Mi perfil</h1>
+          <EstadoBadge tono={profesional.estado === "APROBADO" ? "success" : "warning"}>
+            {profesional.estado === "APROBADO" ? "Aprobado" : "Pendiente de aprobación"}
+          </EstadoBadge>
         </div>
-      </div>
 
-      <span className={`w-fit rounded-full px-3 py-1 text-sm ${badge.clase}`}>{badge.texto}</span>
+        <Card>
+          <CardHeader>
+            <CardTitle>Datos profesionales</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <PerfilForm especialidad={profesional.especialidad} matricula={profesional.matricula} />
+          </CardContent>
+        </Card>
 
-      <PerfilForm especialidad={profesional.especialidad} matricula={profesional.matricula} />
-
-      {profesional.firmaPath && (
-        <div className="flex w-full max-w-sm flex-col gap-1">
-          <span className="text-sm text-zinc-700 dark:text-zinc-300">Firma actual</span>
-          <Image
-            src={`/api/firma/${profesional.firmaPath}`}
-            alt="Firma escaneada"
-            width={200}
-            height={100}
-            className="rounded border border-zinc-300 bg-white object-contain dark:border-zinc-700"
-            unoptimized
-          />
-        </div>
-      )}
+        {profesional.firmaPath && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Firma actual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="w-fit rounded-lg border border-border bg-white p-3">
+                <Image
+                  src={`/api/firma/${profesional.firmaPath}`}
+                  alt="Firma escaneada"
+                  width={200}
+                  height={100}
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </main>
     </div>
   );
 }

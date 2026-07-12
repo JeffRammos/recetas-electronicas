@@ -73,6 +73,10 @@ export async function emitirReceta(
       return { errors: pacienteValidado.error.flatten().fieldErrors };
     }
     const datosPaciente = pacienteValidado.data;
+    const obraSocialId =
+      datosPaciente.obraSocialId && datosPaciente.obraSocialId !== "particular"
+        ? datosPaciente.obraSocialId
+        : undefined;
     paciente = await prisma.paciente.upsert({
       where: { profesionalId_dni: { profesionalId: profesional.id, dni: datosPaciente.dni } },
       update: {},
@@ -83,7 +87,7 @@ export async function emitirReceta(
         apellido: datosPaciente.apellido,
         fechaNacimiento: datosPaciente.fechaNacimiento,
         sexo: datosPaciente.sexo,
-        obraSocialId: datosPaciente.obraSocialId || undefined,
+        obraSocialId,
         obraSocialCredencial: datosPaciente.obraSocialCredencial || undefined,
       },
       include: { obraSocial: true },
