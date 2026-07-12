@@ -1,0 +1,43 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN
+  PROFESIONAL
+}
+
+enum EstadoProfesional {
+  PENDIENTE
+  APROBADO
+}
+
+model Usuario {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  passwordHash String
+  nombre       String
+  rol          Rol
+  createdAt    DateTime     @default(now())
+  profesional  Profesional?
+}
+
+model Profesional {
+  id           String            @id @default(cuid())
+  usuario      Usuario           @relation(fields: [usuarioId], references: [id])
+  usuarioId    String            @unique
+  especialidad String?
+  matricula    String?
+  firmaPath    String?
+  estado       EstadoProfesional @default(PENDIENTE)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+}
