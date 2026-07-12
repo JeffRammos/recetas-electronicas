@@ -3,58 +3,51 @@
 import Link from "next/link";
 import { useActionState } from "react";
 import { iniciarSesion } from "@/app/actions/auth";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export default function LoginPage() {
   const [state, action, pending] = useActionState(iniciarSesion, undefined);
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 bg-zinc-50 px-4 font-sans dark:bg-black">
-      <h1 className="text-2xl font-semibold text-black dark:text-zinc-50">Iniciar sesión</h1>
+    <div className="flex min-h-screen flex-1 flex-col items-center justify-center px-4 py-16">
+      <Card className="w-full max-w-sm">
+        <CardHeader className="gap-1 text-center">
+          <Link href="/" className="mb-2 font-heading text-lg text-secondary italic">
+            Receta<span className="text-primary not-italic">.</span>
+          </Link>
+          <CardTitle className="text-xl">Iniciar sesión</CardTitle>
+        </CardHeader>
 
-      <form action={action} className="flex w-full max-w-sm flex-col gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="email" className="text-sm text-zinc-700 dark:text-zinc-300">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-          />
-        </div>
+        <CardContent>
+          <form action={action} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required />
+            </div>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="password" className="text-sm text-zinc-700 dark:text-zinc-300">
-            Contraseña
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-          />
-        </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input id="password" name="password" type="password" required />
+            </div>
 
-        {state?.message && <p className="text-sm text-red-600">{state.message}</p>}
+            {state?.message && <p className="text-sm text-destructive">{state.message}</p>}
 
-        <button
-          type="submit"
-          disabled={pending}
-          className="rounded bg-black px-4 py-2 text-white disabled:opacity-50 dark:bg-white dark:text-black"
-        >
-          {pending ? "Ingresando..." : "Ingresar"}
-        </button>
-      </form>
+            <Button type="submit" disabled={pending} className="mt-2 w-full">
+              {pending ? "Ingresando..." : "Ingresar"}
+            </Button>
+          </form>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">
-        ¿No tenés cuenta?{" "}
-        <Link href="/registro" className="underline">
-          Registrate
-        </Link>
-      </p>
+          <p className="mt-6 text-center text-sm text-muted-foreground">
+            ¿No tenés cuenta?{" "}
+            <Link href="/registro" className="font-medium text-primary hover:underline">
+              Registrate
+            </Link>
+          </p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
