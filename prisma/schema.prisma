@@ -41,3 +41,29 @@ model Profesional {
   createdAt    DateTime          @default(now())
   updatedAt    DateTime          @updatedAt
 }
+
+model Medicamento {
+  id              String   @id @default(cuid())
+  nombre          String   @unique
+  vencimientoDias Int      @default(30)
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model Estudio {
+  id              String   @id @default(cuid())
+  nombre          String   @unique
+  vencimientoDias Int      @default(60)
+  activo          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+}
+
+model ObraSocial {
+  id                          String   @id @default(cuid())
+  nombre                      String   @unique
+  // null = usa el vencimientoDias del medicamento/estudio; si tiene valor, lo pisa.
+  vencimientoMedicamentosDias Int?
+  vencimientoEstudiosDias     Int?
+  activo                      Boolean  @default(true)
+  createdAt                   DateTime @default(now())
+}
