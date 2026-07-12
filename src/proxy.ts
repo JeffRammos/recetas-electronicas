@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
-const RUTAS_PROFESIONAL = ["/perfil"];
+const RUTAS_PROFESIONAL = ["/perfil", "/recetas"];
 const RUTAS_ADMIN = ["/admin"];
 const RUTAS_SOLO_ANONIMO = ["/login", "/registro"];
 
