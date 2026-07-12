@@ -1,13 +1,14 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-type Tono = "success" | "warning" | "destructive" | "muted";
+type Tono = "success" | "warning" | "destructive" | "muted" | "info";
 
 const clasesPorTono: Record<Tono, string> = {
   success: "border-success/30 bg-success/15 text-success",
   warning: "border-warning/30 bg-warning/15 text-warning",
   destructive: "border-destructive/30 bg-destructive/10 text-destructive",
   muted: "border-transparent bg-muted text-muted-foreground",
+  info: "border-secondary/30 bg-secondary/15 text-secondary",
 };
 
 export function EstadoBadge({

@@ -3,6 +3,8 @@ import { FilePlus2 } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { cerrarSesion } from "@/app/actions/auth";
+import { reintentarPendientes } from "@/lib/proveedor/publicar";
+import { estadoRecetaDisplay } from "@/lib/receta-estado";
 import { AppHeader } from "@/components/app-header";
 import { EstadoBadge } from "@/components/estado-badge";
 import { Button } from "@/components/ui/button";
@@ -20,13 +22,15 @@ export default async function RecetasPage() {
     where: { usuarioId: sesion.user.id },
   });
 
+  // Sincronización oportunista: cada visita a esta página reintenta las
+  // recetas propias que hayan quedado pendientes de publicar.
+  await reintentarPendientes(profesional.id);
+
   const recetas = await prisma.receta.findMany({
     where: { profesionalId: profesional.id },
     include: { paciente: true },
     orderBy: { createdAt: "desc" },
   });
-
-  const hoy = new Date();
 
   return (
     <div className="flex min-h-screen flex-1 flex-col">
@@ -49,9 +53,7 @@ export default async function RecetasPage() {
 
         <div className="flex flex-col gap-2">
           {recetas.map((receta) => {
-            const vencida = receta.estado === "EMITIDA" && receta.fechaVencimiento < hoy;
-            const tono = receta.estado === "ANULADA" ? "muted" : vencida ? "warning" : "success";
-            const texto = receta.estado === "ANULADA" ? "Anulada" : vencida ? "Vencida" : "Emitida";
+            const { tono, texto } = estadoRecetaDisplay(receta);
 
             return (
               <Link

@@ -4,7 +4,8 @@ import { FileText } from "lucide-react";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { cerrarSesion } from "@/app/actions/auth";
-import { anularReceta } from "@/app/actions/recetas";
+import { anularReceta, reintentarSincronizacion, simularDispensacion } from "@/app/actions/recetas";
+import { estadoRecetaDisplay } from "@/lib/receta-estado";
 import { AppHeader } from "@/components/app-header";
 import { EstadoBadge } from "@/components/estado-badge";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,7 @@ export default async function RecetaDetallePage({ params }: { params: Promise<{ 
   });
   if (!receta) notFound();
 
-  const vencida = receta.estado === "EMITIDA" && receta.fechaVencimiento < new Date();
-  const tono = receta.estado === "ANULADA" ? "muted" : vencida ? "warning" : "success";
-  const texto = receta.estado === "ANULADA" ? "Anulada" : vencida ? "Vencida" : "Emitida";
+  const { tono, texto } = estadoRecetaDisplay(receta);
 
   return (
     <div className="flex min-h-screen flex-1 flex-col">
@@ -109,6 +108,19 @@ export default async function RecetaDetallePage({ params }: { params: Promise<{ 
               </p>
             )}
 
+            {receta.estado === "PENDIENTE_SYNC" && (
+              <p className="text-sm text-warning">
+                Todavía no se pudo publicar en el proveedor. El PDF ya está listo, pero la
+                receta va a quedar pendiente hasta que se sincronice.
+              </p>
+            )}
+
+            {receta.proveedorExternalId && (
+              <p className="font-mono text-xs text-muted-foreground">
+                ID proveedor: {receta.proveedorExternalId}
+              </p>
+            )}
+
             <div className="flex flex-wrap items-center gap-3 pt-2">
               {receta.pdfPath && (
                 <Button variant="secondary" nativeButton={false} render={
@@ -119,7 +131,23 @@ export default async function RecetaDetallePage({ params }: { params: Promise<{ 
                 </Button>
               )}
 
+              {receta.estado === "PENDIENTE_SYNC" && (
+                <form action={reintentarSincronizacion.bind(null, receta.id)}>
+                  <Button type="submit" variant="outline" size="sm">
+                    Reintentar ahora
+                  </Button>
+                </form>
+              )}
+
               {receta.estado === "EMITIDA" && (
+                <form action={simularDispensacion.bind(null, receta.id)}>
+                  <Button type="submit" variant="outline" size="sm">
+                    (demo) Simular dispensación
+                  </Button>
+                </form>
+              )}
+
+              {(receta.estado === "EMITIDA" || receta.estado === "PENDIENTE_SYNC") && (
                 <form action={anularReceta.bind(null, receta.id)} className="flex items-center gap-2">
                   <Input
                     name="motivo"
