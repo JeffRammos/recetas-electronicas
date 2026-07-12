@@ -2,6 +2,10 @@
 
 import { useActionState } from "react";
 import type { CatalogoFormState } from "@/app/actions/admin";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function CatalogoSimpleForm({
   action,
@@ -13,45 +17,37 @@ export function CatalogoSimpleForm({
   const [state, formAction, pending] = useActionState(action, undefined);
 
   return (
-    <form action={formAction} className="flex w-full max-w-md items-end gap-2">
-      <div className="flex flex-1 flex-col gap-1">
-        <label htmlFor="nombre" className="text-sm text-zinc-700 dark:text-zinc-300">
-          Nombre
-        </label>
-        <input
-          id="nombre"
-          name="nombre"
-          required
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-        />
-        {state?.errors?.nombre && <p className="text-sm text-red-600">{state.errors.nombre[0]}</p>}
-      </div>
+    <Card>
+      <CardContent>
+        <form action={formAction} className="flex flex-wrap items-end gap-3">
+          <div className="flex min-w-48 flex-1 flex-col gap-1.5">
+            <Label htmlFor="nombre">Nombre</Label>
+            <Input id="nombre" name="nombre" required />
+            {state?.errors?.nombre && (
+              <p className="text-sm text-destructive">{state.errors.nombre[0]}</p>
+            )}
+          </div>
 
-      <div className="flex w-32 flex-col gap-1">
-        <label htmlFor="vencimientoDias" className="text-sm text-zinc-700 dark:text-zinc-300">
-          Vence (días)
-        </label>
-        <input
-          id="vencimientoDias"
-          name="vencimientoDias"
-          type="number"
-          min={1}
-          defaultValue={vencimientoPorDefecto}
-          required
-          className="rounded border border-zinc-300 bg-white px-3 py-2 text-black dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-        />
-        {state?.errors?.vencimientoDias && (
-          <p className="text-sm text-red-600">{state.errors.vencimientoDias[0]}</p>
-        )}
-      </div>
+          <div className="flex w-32 flex-col gap-1.5">
+            <Label htmlFor="vencimientoDias">Vence (días)</Label>
+            <Input
+              id="vencimientoDias"
+              name="vencimientoDias"
+              type="number"
+              min={1}
+              defaultValue={vencimientoPorDefecto}
+              required
+            />
+            {state?.errors?.vencimientoDias && (
+              <p className="text-sm text-destructive">{state.errors.vencimientoDias[0]}</p>
+            )}
+          </div>
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="rounded bg-black px-4 py-2 text-sm text-white disabled:opacity-50 dark:bg-white dark:text-black"
-      >
-        {pending ? "Agregando..." : "Agregar"}
-      </button>
-    </form>
+          <Button type="submit" disabled={pending}>
+            {pending ? "Agregando..." : "Agregar"}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 }

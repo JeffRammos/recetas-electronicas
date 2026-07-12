@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { toggleObraSocialActivo } from "@/app/actions/admin";
 import { AdminNav } from "../admin-nav";
 import { ObraSocialForm } from "../_components/obra-social-form";
+import { EstadoBadge } from "@/components/estado-badge";
+import { Button } from "@/components/ui/button";
 
 export default async function ObrasSocialesPage() {
   const sesion = await auth();
@@ -11,39 +13,44 @@ export default async function ObrasSocialesPage() {
   const obrasSociales = await prisma.obraSocial.findMany({ orderBy: { nombre: "asc" } });
 
   return (
-    <div className="flex min-h-screen flex-col items-center gap-6 bg-zinc-50 px-4 py-12 font-sans dark:bg-black">
+    <div className="flex min-h-screen flex-1 flex-col">
       <AdminNav />
-      <h1 className="w-full max-w-2xl text-2xl font-semibold text-black dark:text-zinc-50">
-        Obras sociales
-      </h1>
 
-      <ObraSocialForm />
+      <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-10">
+        <h1 className="font-heading text-2xl text-foreground">Obras sociales</h1>
 
-      <div className="flex w-full max-w-2xl flex-col gap-2">
-        {obrasSociales.length === 0 && (
-          <p className="text-zinc-600 dark:text-zinc-400">No hay obras sociales cargadas.</p>
-        )}
-        {obrasSociales.map((obraSocial) => (
-          <div
-            key={obraSocial.id}
-            className="flex items-center justify-between rounded border border-zinc-300 p-3 dark:border-zinc-700"
-          >
-            <div>
-              <p className="text-black dark:text-zinc-50">{obraSocial.nombre}</p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                Medicamentos: {obraSocial.vencimientoMedicamentosDias ?? "default"} · Estudios:{" "}
-                {obraSocial.vencimientoEstudiosDias ?? "default"}
-                {!obraSocial.activo && " · Inactiva"}
-              </p>
+        <ObraSocialForm />
+
+        <div className="flex flex-col gap-2">
+          {obrasSociales.length === 0 && (
+            <p className="rounded-lg border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
+              No hay obras sociales cargadas.
+            </p>
+          )}
+          {obrasSociales.map((obraSocial) => (
+            <div
+              key={obraSocial.id}
+              className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card px-4 py-3"
+            >
+              <div className="flex items-center gap-3">
+                <p className="text-foreground">{obraSocial.nombre}</p>
+                <span className="font-mono text-sm text-muted-foreground">
+                  Med. {obraSocial.vencimientoMedicamentosDias ?? "default"} · Est.{" "}
+                  {obraSocial.vencimientoEstudiosDias ?? "default"}
+                </span>
+                <EstadoBadge tono={obraSocial.activo ? "success" : "muted"}>
+                  {obraSocial.activo ? "Activa" : "Inactiva"}
+                </EstadoBadge>
+              </div>
+              <form action={toggleObraSocialActivo.bind(null, obraSocial.id, obraSocial.activo)}>
+                <Button type="submit" variant="ghost" size="sm">
+                  {obraSocial.activo ? "Desactivar" : "Activar"}
+                </Button>
+              </form>
             </div>
-            <form action={toggleObraSocialActivo.bind(null, obraSocial.id, obraSocial.activo)}>
-              <button type="submit" className="text-sm underline text-zinc-700 dark:text-zinc-300">
-                {obraSocial.activo ? "Desactivar" : "Activar"}
-              </button>
-            </form>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </main>
     </div>
   );
 }
