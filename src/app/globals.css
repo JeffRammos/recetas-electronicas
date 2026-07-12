@@ -1,26 +1,116 @@
 @import "tailwindcss";
-
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-heading);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/*
+ * Paleta "botica moderna": neutros cálidos sesgados hacia el acento (nunca
+ * gris puro), acento principal terracota/miel, y un verde profundo como
+ * color secundario para header/nav. Ver plan de diseño para el porqué de
+ * cada token.
+ */
+:root {
+  --background: #f6f2ec;
+  --foreground: #241e17;
+  --card: #ffffff;
+  --card-foreground: #241e17;
+  --popover: #ffffff;
+  --popover-foreground: #241e17;
+  --primary: #c9722e;
+  --primary-foreground: #fdf8f2;
+  --secondary: #1f4a3f;
+  --secondary-foreground: #fdf8f2;
+  --muted: #ede6d9;
+  --muted-foreground: #6b6155;
+  --accent: #f1dfc9;
+  --accent-foreground: #4a2e14;
+  --destructive: #c0483a;
+  --success: #3a7d5c;
+  --success-foreground: #fdf8f2;
+  --warning: #b8862b;
+  --warning-foreground: #fdf8f2;
+  --border: #e4dbc9;
+  --input: #e4dbc9;
+  --ring: #c9722e;
+  --radius: 0.625rem;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1b1712;
+    --foreground: #f2ece3;
+    --card: #241f19;
+    --card-foreground: #f2ece3;
+    --popover: #241f19;
+    --popover-foreground: #f2ece3;
+    --primary: #e0925a;
+    --primary-foreground: #241205;
+    --secondary: #2e6b5b;
+    --secondary-foreground: #f2ece3;
+    --muted: #28221b;
+    --muted-foreground: #b8ad9e;
+    --accent: #3a2e22;
+    --accent-foreground: #f1dfc9;
+    --destructive: #d9695c;
+    --success: #4e9973;
+    --success-foreground: #0f1f17;
+    --warning: #d9a94a;
+    --warning-foreground: #241a04;
+    --border: #38312a;
+    --input: #38312a;
+    --ring: #e0925a;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+    text-wrap: balance;
+  }
 }
